@@ -1,50 +1,41 @@
-// ============================================
-// FOOTER — Rodapé (sem LinkedIn)
-// Dados: do painel admin
-// ============================================
-import { usePortfolioData } from '@/lib/use-portfolio-data'
+'use client'
 
-export default function Footer() {
-  const year = new Date().getFullYear()
-  const { data } = usePortfolioData()
+// ============================================
+// PUBLIC SHELL — Wrapper condicional
+// Renderiza os efeitos do site público SOMENTE fora do /painel
+// No painel admin: renderiza apenas children (visual limpo)
+// ============================================
+import dynamic from 'next/dynamic'
+import { usePathname } from 'next/navigation'
+import NoiseOverlay from './NoiseOverlay'
+import CustomCursor from './CustomCursor'
+import Navigation from './Navigation'
+import SmoothScroll from './SmoothScroll'
 
+// WebGLBackground tem problemas em SSR (Three.js/R3F).
+// Carregamos só no client para evitar erros.
+const WebGLBackground = dynamic(() => import('./WebGLBackground'), {
+  ssr: false,
+  loading: () => null,
+})
+
+export default function PublicShell({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname()
+  const isAdmin = pathname?.startsWith('/painel') ?? false
+
+  // Painel admin: visual limpo, sem efeitos
+  if (isAdmin) {
+    return <>{children}</>
+  }
+
+  // Site público: com todos os efeitos
   return (
-    <footer className="py-12 md:py-16 container-x border-t border-white/10">
-      <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
-        <div className="font-serif text-2xl">
-          portfólio<span className="text-accent">.</span>
-        </div>
-
-        <div className="font-mono text-xs text-muted uppercase tracking-wider">
-          © {year} — Feito com atenção aos detalhes
-        </div>
-
-        {/* Apenas GitHub e Twitter (LinkedIn removido) */}
-        <div className="flex gap-6 font-mono text-xs uppercase tracking-wider">
-          {data.socials.github && (
-            <a
-              href={data.socials.github}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="hover:text-accent transition-colors"
-              data-cursor="hover"
-            >
-              GitHub
-            </a>
-          )}
-          {data.socials.twitter && (
-            <a
-              href={data.socials.twitter}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="hover:text-accent transition-colors"
-              data-cursor="hover"
-            >
-              Twitter
-            </a>
-          )}
-        </div>
-      </div>
-    </footer>
+    <>
+      <WebGLBackground />
+      <NoiseOverlay />
+      <CustomCursor />
+      <Navigation />
+      <SmoothScroll>{children}</SmoothScroll>
+    </>
   )
 }
