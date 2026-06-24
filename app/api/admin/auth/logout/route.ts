@@ -2,12 +2,12 @@
 // API — Logout
 // ============================================
 import { NextResponse } from 'next/server'
-import { SESSION_COOKIE } from '@/lib/github-oauth'
+import { AUTH_COOKIE } from '@/lib/admin-auth'
 
 export async function POST() {
   const response = NextResponse.json({ success: true })
   response.cookies.delete({
-    name: SESSION_COOKIE,
+    name: AUTH_COOKIE,
     path: '/',
   })
   return response

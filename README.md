@@ -1,6 +1,6 @@
 # Portfólio — Nível Awwwards
 
-Portfólio pessoal com painel administrativo via **GitHub OAuth** e design premium.
+Portfólio pessoal com **painel administrativo (login por senha)** e design premium.
 
 ![Stack](https://img.shields.io/badge/Next.js-14-black) ![Three.js](https://img.shields.io/badge/Three.js-WebGL-blue) ![GSAP](https://img.shields.io/badge/GSAP-3.12-green)
 
@@ -15,12 +15,90 @@ Portfólio pessoal com painel administrativo via **GitHub OAuth** e design premi
 - 7 seções: Hero, Projetos, Tecnologias, Experiência, Sobre, Depoimentos, Contato
 
 **Painel administrativo:**
-- 🔐 **Login via GitHub OAuth** (sem senha pra lembrar)
+- 🔐 Login por senha (SHA-256 + cookie httpOnly)
 - 🛡️ URL secreta via middleware (esconde /painel)
-- 🚫 Sessão assinada HMAC em cookie httpOnly
+- ⏱️ Delay anti brute-force
 - ✏️ Edição completa: perfil, projetos, experiência, tecnologias, depoimentos, redes sociais
-- 🎨 Visual preto/branco com Framer Motion
+- 🎨 Visual preto/branco com Framer Motion (fades suaves)
 - 💾 Dados salvos no navegador (localStorage)
+- 🚀 **Funciona IMEDIATAMENTE sem configurar nada** (tem defaults)
+
+## 🚀 Quick Start (30 segundos)
+
+```bash
+npm install
+npm run dev
+```
+
+Acesse:
+
+```
+http://localhost:3000/painel?chave=painel-admin
+```
+
+Senha: **`admin123`**
+
+✅ Pronto! O painel funciona sem `.env` configurado.
+
+---
+
+## 🔐 Configuração para produção
+
+Antes de colocar online, configure suas próprias credenciais:
+
+### 1. Gere sua senha (em hash)
+
+```bash
+# Troque "minha-senha-segura" pela senha que você quer
+node -e "console.log(require('crypto').createHash('sha256').update('minha-senha-segura').digest('hex'))"
+```
+
+Vai retornar algo como:
+```
+a1b2c3d4e5f6... (64 caracteres)
+```
+
+### 2. Gere sua chave de URL
+
+```bash
+node -e "console.log(Math.random().toString(36).slice(2))"
+```
+
+Retorna algo como:
+```
+x7y9z2k9
+```
+
+### 3. Crie `.env.local`
+
+```bash
+cp .env.example .env.local
+```
+
+Edite e cole seus valores:
+
+```env
+ADMIN_PASSWORD_HASH=a1b2c3d4e5f6...
+ADMIN_PATH_SECRET=x7y9z2k9
+```
+
+### 4. Na Vercel
+
+**Settings → Environment Variables**, adicione:
+- `ADMIN_PASSWORD_HASH` = seu hash
+- `ADMIN_PATH_SECRET` = sua chave
+
+Faça **Redeploy**.
+
+### 5. Acesse com seus dados
+
+```
+https://seu-site.vercel.app/painel?chave=x7y9z2k9
+```
+
+Senha: a que você escolheu.
+
+---
 
 ## 🛠 Stack
 
@@ -29,213 +107,45 @@ Portfólio pessoal com painel administrativo via **GitHub OAuth** e design premi
 | **Framework** | Next.js 14 (App Router) |
 | **3D / WebGL** | Three.js, React Three Fiber, GLSL Shaders |
 | **Animação** | GSAP + ScrollTrigger, Framer Motion |
-| **Auth** | GitHub OAuth + HMAC signed cookies |
+| **Auth** | Senha SHA-256 + cookie httpOnly |
 | **Scroll** | Lenis |
 | **Estilo** | Tailwind CSS + TypeScript |
 
----
-
-## 🚀 Setup rápido
-
-### 1. Instalar dependências
-
-```bash
-npm install
-```
-
-### 2. Configurar GitHub OAuth (5 minutos)
-
-Você vai precisar criar um OAuth App no GitHub. Veja o guia detalhado abaixo.
-
-### 3. Criar `.env.local`
-
-```bash
-cp .env.example .env.local
-```
-
-Edite `.env.local` com as credenciais obtidas:
-
-```env
-GITHUB_CLIENT_ID=seu_client_id
-GITHUB_CLIENT_SECRET=seu_client_secret
-ADMIN_GITHUB_USERNAME=seu_usuario_github
-SESSION_SECRET=gere_com_comando_abaixo
-ADMIN_PATH_SECRET=gere_com_comando_abaixo
-```
-
-Gere os segredos:
-
-```bash
-# SESSION_SECRET (32 bytes em hex)
-node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
-
-# ADMIN_PATH_SECRET (string aleatória)
-node -e "console.log(Math.random().toString(36).slice(2))"
-```
-
-### 4. Rodar
-
-```bash
-npm run dev
-# http://localhost:3000
-```
-
-### 5. Acessar painel
+## 📁 Estrutura
 
 ```
-http://localhost:3000/painel?chave=SEU_ADMIN_PATH_SECRET
+portfolio/
+├── app/
+│   ├── api/admin/             ← API do painel (login/logout/config)
+│   ├── components/            ← Site público
+│   ├── painel/                ← Painel admin (8 páginas)
+│   │   ├── _components/       ← Sidebar, Shell, Forms
+│   │   ├── login/             ← Login
+│   │   ├── perfil/            ← Editor de perfil
+│   │   ├── projetos/          ← Editor de projetos (CRUD)
+│   │   ├── experiencia/       ← Editor de experiência
+│   │   ├── tecnologias/       ← Editor de stack
+│   │   ├── depoimentos/       ← Editor de depoimentos
+│   │   ├── configuracoes/     ← GitHub + Twitter
+│   │   └── page.tsx           ← Dashboard
+│   ├── layout.tsx
+│   ├── page.tsx
+│   └── globals.css
+├── lib/                       ← Helpers
+│   ├── portfolio-data.ts      ← Tipos + dados padrão
+│   ├── use-portfolio-data.ts  ← Hook client-side
+│   └── admin-auth.ts          ← Auth helpers
+├── middleware.ts              ← Proteção de rotas
+└── .env.example
 ```
-
-Clique em **"Entrar com GitHub"** → autorize → pronto!
-
----
-
-## 🔐 Como criar o GitHub OAuth App (passo a passo)
-
-### Passo 1: Acessar Developer Settings
-
-1. Faça login no GitHub
-2. Vá em **https://github.com/settings/developers**
-3. Click em **"OAuth apps"** no menu lateral
-4. Click em **"New OAuth App"** (botão no canto superior direito)
-
-### Passo 2: Preencher o formulário
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│  Application name:    Portfolio Admin                       │
-│                                                               │
-│  Homepage URL:                                               │
-│    • Dev:  http://localhost:3000                             │
-│    • Prod: https://seu-site.vercel.app                       │
-│                                                               │
-│  Application description: (opcional)                        │
-│    "Painel administrativo do meu portfólio"                  │
-│                                                               │
-│  Authorization callback URL:                                 │
-│    • Dev:  http://localhost:3000/api/admin/auth/github/callback │
-│    • Prod: https://seu-site.vercel.app/api/admin/auth/github/callback │
-│                                                               │
-│  ☑ Enable Device Flow (deixe desmarcado)                    │
-└─────────────────────────────────────────────────────────────┘
-```
-
-**⚠️ ATENÇÃO na Callback URL:**
-- Tem que ser **EXATAMENTE** igual ao que você colocar
-- Tem que terminar em `/api/admin/auth/github/callback`
-- Sem barra no final
-- HTTPS em produção (não http)
-
-Click **"Register application"**
-
-### Passo 3: Obter Client ID
-
-Você será redirecionado para a página do app. No topo você vê:
-
-```
-Client ID
-IvxAMPLE1234567890ABCDEF  ← COPIE ESTE
-```
-
-### Passo 4: Gerar Client Secret
-
-1. Na mesma página, click **"Generate a new client secret"**
-2. **COPIE O SECRET IMEDIATAMENTE** — você não vai conseguir ver de novo!
-3. Se perder, só pode gerar um novo (revoga o antigo)
-
-Você verá algo assim:
-
-```
-Client secrets
-ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx  ← COPIE ESTE
-```
-
-### Passo 5: Adicionar ao `.env.local`
-
-```env
-GITHUB_CLIENT_ID=IvxAMPLE1234567890ABCDEF
-GITHUB_CLIENT_SECRET=ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-```
-
-### Passo 6: Definir quem pode acessar
-
-O `ADMIN_GITHUB_USERNAME` controla quais contas GitHub podem entrar.
-
-```env
-# Apenas você
-ADMIN_GITHUB_USERNAME=seu-usuario-github
-
-# Múltiplos admins (separados por vírgula, sem espaço)
-ADMIN_GITHUB_USERNAME=seu-usuario,colega-dev,namorada
-```
-
-⚠️ É o **username**, não o nome de exibição. Você encontra em `github.com/SEU-USUARIO` (parte da URL).
-
-### Passo 7: Testar
-
-```bash
-# Reinicie o servidor
-npm run dev
-
-# Acesse
-http://localhost:3000/painel?chave=SEU_ADMIN_PATH_SECRET
-```
-
-Click em "Entrar com GitHub" → autorize → se seu username está no env, entra!
-
----
-
-## 🌐 Deploy na Vercel
-
-### Passo 1: Subir pro GitHub
-
-```bash
-git init
-git add .
-git commit -m "feat: portfólio com GitHub OAuth"
-git branch -M main
-git remote add origin https://github.com/SEU-USER/portfolio.git
-git push -u origin main
-```
-
-### Passo 2: Importar na Vercel
-
-1. [vercel.com](https://vercel.com) → **"Add New Project"**
-2. Selecione o repositório
-3. **ANTES de fazer Deploy**, click **"Environment Variables"** e adicione:
-
-| Nome | Valor |
-|------|-------|
-| `GITHUB_CLIENT_ID` | seu Client ID |
-| `GITHUB_CLIENT_SECRET` | seu Client Secret |
-| `ADMIN_GITHUB_USERNAME` | seu username GitHub |
-| `SESSION_SECRET` | (string aleatória de 64 chars) |
-| `ADMIN_PATH_SECRET` | (string aleatória curta) |
-
-4. Click **Deploy**
-
-### Passo 3: Atualizar a Callback URL no GitHub
-
-Depois do deploy, edite seu OAuth App no GitHub e atualize a **Authorization callback URL** para:
-```
-https://seu-site.vercel.app/api/admin/auth/github/callback
-```
-
-### Passo 4: Acessar
-
-```
-https://seu-site.vercel.app/painel?chave=SEU_ADMIN_PATH_SECRET
-```
-
----
 
 ## 🎨 Customização
 
-### Editar dados pelo painel (recomendado)
-Acesse `/painel`, faça login com GitHub, edite tudo visualmente. As alterações ficam salvas no navegador e aparecem instantaneamente.
+### Editar dados pelo painel
+Acesse `/painel` (com a chave), edite tudo visualmente. Salva no navegador e aparece no site.
 
 ### Editar dados padrão no código
-Edite `lib/portfolio-data.ts` — são as descrições melhoradas (técnicas + resultados).
+Edite `lib/portfolio-data.ts` — são as descrições técnicas com resultados.
 
 ### Cores
 `tailwind.config.ts`:
@@ -249,7 +159,7 @@ colors: {
 ```
 
 ### Fontes
-`app/layout.tsx` — altere `Inter`, `Instrument_Serif`, `JetBrains_Mono`.
+`app/layout.tsx` — `Inter`, `Instrument_Serif`, `JetBrains_Mono`.
 
 ### Shader WebGL
 `app/components/WebGLBackground.tsx` — edite `fragmentShader`.
@@ -261,20 +171,36 @@ colors: {
 | Camada | Implementação |
 |--------|---------------|
 | **URL oculta** | `/painel?chave=SEGREDO` — middleware retorna 404 sem chave |
-| **GitHub OAuth** | Delega autenticação ao GitHub (2FA funciona) |
-| **Lista de admins** | Só usernames no env var podem entrar |
-| **CSRF** | State aleatório em cookie httpOnly |
-| **Sessão HMAC** | Cookie assinado com SHA-256 |
-| **httpOnly + Secure** | JS do browser não lê; HTTPS em prod |
-| **SameSite strict** | Proteção CSRF adicional |
-| **Expiração 24h** | Cookie expira automaticamente |
+| **Senha SHA-256** | Hash em env var (nunca plaintext) |
+| **Cookie httpOnly** | JS do browser não consegue ler |
+| **SameSite strict** | Proteção CSRF |
+| **Secure flag** | HTTPS-only em produção |
+| **Delay fixo 500ms** | Dificulta brute-force |
 
-**Por que GitHub OAuth > senha:**
-- ✅ Sem senha pra vazar/lembrar
-- ✅ Funciona com 2FA do GitHub
-- ✅ GitHub já protege contra brute-force
-- ✅ Você vê qual conta entrou (auditável)
-- ✅ Fácil adicionar/remover admins (env var)
+**Para produção, lembre-se:**
+1. ✅ Defina `ADMIN_PASSWORD_HASH` (não use `admin123`)
+2. ✅ Defina `ADMIN_PATH_SECRET` (não use `painel-admin`)
+3. ✅ Use HTTPS (Vercel faz automaticamente)
+4. ✅ Senha forte (12+ caracteres)
+
+---
+
+## 🌐 Deploy na Vercel
+
+```bash
+# 1. Subir pro GitHub
+git init
+git add .
+git commit -m "feat: portfólio"
+git push
+
+# 2. Vercel → Add New Project → selecione repo
+# 3. Configure env vars em Settings (opcional - tem defaults)
+# 4. Deploy
+```
+
+Site público: `https://seu-site.vercel.app/`
+Painel: `https://seu-site.vercel.app/painel?chave=painel-admin` (ou sua chave custom)
 
 ---
 
@@ -287,7 +213,7 @@ colors: {
 > "E-commerce de veículos com Next.js e Algolia. Implementei busca facetada, lazy loading de imagens e filtros em URL. Stack: Next.js, Algolia, Stripe, Vercel. Resultados: +38% conversão de busca, LCP 0.9s, suporta 100k SKUs."
 
 **Fórmula:**
-1. **O que é** (1 linha objetiva)
+1. **O que é** (1 linha)
 2. **Stack** (tecnologias)
 3. **Métodos** (o que você fez)
 4. **Resultados** (métricas: +X%, <Xs, etc)
@@ -305,21 +231,23 @@ Coloque os vídeos em `public/videos/`.
 
 ## 🆘 Troubleshooting
 
-**GitHub retorna erro "redirect_uri_mismatch"?**
-- A callback URL no GitHub deve ser **EXATAMENTE** igual à do seu site (incluindo http/https)
+**Painel retorna 404?**
+- Verifique se a chave está certa na URL
+- Default: `chave=painel-admin`
 
-**"Sua conta do GitHub não tem permissão"?**
-- Verifique se `ADMIN_GITHUB_USERNAME` tem exatamente o seu username (lowercase, sem @)
+**Login não aceita senha?**
+- Sem `.env.local` configurado: use `admin123`
+- Com `.env.local`: use a senha original (não o hash)
 
-**Painel retorna 500 ao tentar login?**
-- Verifique se as 3 env vars do GitHub estão no `.env.local`: `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET`, `ADMIN_GITHUB_USERNAME`
+**Como gerar nova senha?**
+```bash
+node -e "console.log(require('crypto').createHash('sha256').update('NOVA_SENHA').digest('hex'))"
+# Cole no .env.local: ADMIN_PASSWORD_HASH=hash_gerado
+```
 
-**Cookie de sessão não persiste?**
-- Em produção, garanta que o site está em HTTPS (Vercel já faz isso)
-
-**Quero adicionar mais admins?**
-- Edite `ADMIN_GITHUB_USERNAME`: `user1,user2,user3` (vírgula, sem espaço)
-- Não precisa deployar de novo (mas se quiser, faça)
+**Esqueci minha senha?**
+- Apague a linha `ADMIN_PASSWORD_HASH` do `.env.local`
+- Vai voltar para o padrão `admin123`
 
 ## 📄 Licença
 Livre para uso pessoal.

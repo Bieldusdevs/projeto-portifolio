@@ -1,53 +1,65 @@
 // ============================================
-// ADMIN AUTH — Helpers de autenticação
-// Apenas server-side (usa crypto do Node)
+// ADMIN AUTH — Login por senha
+// Funciona SEM configurar nada (tem defaults).
+// Para produção, defina ADMIN_PASSWORD_HASH no .env.
 // ============================================
-import { createHash, randomBytes, timingSafeEqual } from 'crypto'
+import { createHash } from 'crypto'
+
+// ⚠️ Defaults de DEMO. Mude para produção!
+const DEFAULT_PATH_SECRET = 'painel-admin'
+const DEFAULT_PASSWORD = 'admin123'
+
+export const AUTH_COOKIE = 'admin-auth'
+export const AUTH_COOKIE_MAX_AGE = 60 * 60 * 24 // 24 horas
 
 /**
- * Gera hash SHA-256 de uma senha
+ * Hash SHA-256 de uma senha
  */
 export function hashPassword(password: string): string {
   return createHash('sha256').update(password).digest('hex')
 }
 
 /**
- * Verifica senha comparando com hash (timing-safe)
+ * Verifica senha (timing-safe)
  */
 export function verifyPassword(password: string, hash: string): boolean {
   try {
-    const providedHash = hashPassword(password)
-    const a = Buffer.from(providedHash, 'hex')
-    const b = Buffer.from(hash, 'hex')
-    if (a.length !== b.length) return false
-    return timingSafeEqual(a, b)
+    const a = hashPassword(password)
+    if (a.length !== hash.length) return false
+    let mismatch = 0
+    for (let i = 0; i < a.length; i++) {
+      mismatch |= a.charCodeAt(i) ^ hash.charCodeAt(i)
+    }
+    return mismatch === 0
   } catch {
     return false
   }
 }
 
 /**
- * Gera secret aleatório para URL do painel
+ * Retorna o segredo da URL.
+ * Usa DEFAULT se ADMIN_PATH_SECRET não estiver definido.
  */
-export function generateSecret(length: number = 12): string {
-  return randomBytes(length).toString('base64url').slice(0, length)
+export function getPathSecret(): string {
+  return process.env.ADMIN_PATH_SECRET || DEFAULT_PATH_SECRET
 }
 
 /**
- * Constantes de configuração do cookie
+ * Retorna o hash da senha.
+ * Usa DEFAULT se ADMIN_PASSWORD_HASH não estiver definido.
  */
-export const AUTH_COOKIE = 'admin-auth'
-export const AUTH_COOKIE_MAX_AGE = 60 * 60 * 24 // 24 horas
-
-export const ATTEMPTS_COOKIE = 'admin-attempts'
-export const BLOCK_COOKIE = 'admin-block'
-export const MAX_ATTEMPTS = 5
-export const BLOCK_DURATION = 15 * 60 * 1000 // 15 minutos
+export function getPasswordHash(): string {
+  return process.env.ADMIN_PASSWORD_HASH || hashPassword(DEFAULT_PASSWORD)
+}
 
 /**
- * Calcula delay exponencial para anti-brute-force
- * 1ª falha: 1s | 2ª: 2s | 3ª: 4s | 4ª: 8s | 5ª: 16s
+ * Detecta se está usando valores padrão
  */
-export function calculateDelay(attempts: number): number {
-  return Math.min(1000 * Math.pow(2, attempts - 1), 30000)
+export function getConfigStatus() {
+  return {
+    usingDefaultPathSecret: !process.env.ADMIN_PATH_SECRET,
+    usingDefaultPassword: !process.env.ADMIN_PASSWORD_HASH,
+    // Em produção, força mudança
+    isProduction: process.env.NODE_ENV === 'production',
+  }
 }

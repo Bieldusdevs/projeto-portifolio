@@ -1,56 +1,65 @@
 'use client'
 
 // ============================================
-// LOGIN — Login via GitHub OAuth
-// Visual: preto/branco com Framer Motion
+// LOGIN — Senha
+// Mostra aviso se estiver usando valores padrão
 // ============================================
 import { Suspense, useEffect, useState } from 'react'
-import { useSearchParams, useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { motion } from 'framer-motion'
+
+type Config = {
+  usingDefaultPathSecret: boolean
+  usingDefaultPassword: boolean
+  isProduction: boolean
+}
 
 function LoginContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const error = searchParams.get('erro')
-  const [checking, setChecking] = useState(true)
+  const [password, setPassword] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
+  const [config, setConfig] = useState<Config | null>(null)
 
-  // Se já está autenticado, redireciona
+  // Buscar config para saber se está usando defaults
   useEffect(() => {
-    fetch('/api/admin/auth/status')
+    fetch('/api/admin/auth/config')
       .then((r) => r.json())
-      .then((data) => {
-        if (data.authenticated) {
-          router.push('/painel')
-        } else {
-          setChecking(false)
-        }
-      })
-      .catch(() => setChecking(false))
-  }, [router])
+      .then(setConfig)
+      .catch(() => setConfig(null))
+  }, [])
 
-  const handleLogin = () => {
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setError('')
+    setLoading(true)
+
     const chave = searchParams.get('chave') || ''
-    window.location.href = `/api/admin/auth/github?chave=${encodeURIComponent(chave)}`
+
+    try {
+      const res = await fetch('/api/admin/auth', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password, chave }),
+      })
+
+      const data = await res.json()
+
+      if (data.success) {
+        router.push('/painel')
+      } else {
+        setError(data.error || 'Erro ao autenticar')
+        setLoading(false)
+      }
+    } catch (e) {
+      setError('Erro de conexão')
+      setLoading(false)
+    }
   }
 
-  const errorMessages: Record<string, string> = {
-    nao_autorizado:
-      'Sua conta do GitHub não tem permissão para acessar este painel.',
-    oauth_falhou: 'Erro na autenticação com GitHub. Tente novamente.',
-    access_denied: 'Você cancelou a autorização no GitHub.',
-  }
-
-  if (checking) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-[#fafafa]">
-        <motion.div
-          animate={{ rotate: 360 }}
-          transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
-          className="w-6 h-6 border-2 border-black border-t-transparent rounded-full"
-        />
-      </div>
-    )
-  }
+  const usingDefaults =
+    config?.usingDefaultPathSecret || config?.usingDefaultPassword
 
   return (
     <div className="min-h-screen flex items-center justify-center p-6 bg-[#fafafa]">
@@ -75,8 +84,9 @@ function LoginContent() {
           </div>
         </motion.div>
 
-        {/* Card */}
-        <motion.div
+        {/* Card de login */}
+        <motion.form
+          onSubmit={handleSubmit}
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3, duration: 0.6 }}
@@ -84,8 +94,23 @@ function LoginContent() {
         >
           <h1 className="font-serif text-2xl mb-2">Entrar</h1>
           <p className="text-sm text-zinc-500 mb-8">
-            Use sua conta do GitHub para acessar o painel administrativo.
+            Digite sua senha para acessar o painel.
           </p>
+
+          <div className="mb-6">
+            <label className="block font-mono text-xs uppercase tracking-wider text-zinc-500 mb-2">
+              Senha
+            </label>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              autoFocus
+              className="w-full px-4 py-3 bg-zinc-50 border border-zinc-200 rounded-lg text-[#0a0a0a] focus:border-black focus:bg-white transition-all duration-200"
+              placeholder="••••••••"
+            />
+          </div>
 
           {error && (
             <motion.div
@@ -93,41 +118,73 @@ function LoginContent() {
               animate={{ opacity: 1, y: 0 }}
               className="mb-6 px-4 py-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700"
             >
-              {errorMessages[error] || `Erro: ${error}`}
+              {error}
             </motion.div>
           )}
 
           <motion.button
-            onClick={handleLogin}
-            whileHover={{ scale: 1.01 }}
-            whileTap={{ scale: 0.99 }}
+            type="submit"
+            disabled={loading}
+            whileHover={{ scale: loading ? 1 : 1.01 }}
+            whileTap={{ scale: loading ? 1 : 0.99 }}
             transition={{ duration: 0.2 }}
-            className="w-full py-3.5 bg-black text-white rounded-lg font-medium hover:bg-zinc-800 transition-colors flex items-center justify-center gap-3"
+            className="w-full py-3.5 bg-black text-white rounded-lg font-mono text-sm uppercase tracking-wider hover:bg-zinc-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <svg
-              className="w-5 h-5"
-              viewBox="0 0 24 24"
-              fill="currentColor"
-              aria-hidden="true"
-            >
-              <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" />
-            </svg>
-            Entrar com GitHub
+            {loading ? (
+              <span className="flex items-center justify-center gap-2">
+                <motion.span
+                  animate={{ rotate: 360 }}
+                  transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+                  className="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full"
+                />
+                Verificando...
+              </span>
+            ) : (
+              'Entrar'
+            )}
           </motion.button>
 
-          <div className="mt-8 pt-6 border-t border-zinc-100">
-            <div className="flex items-start gap-3">
-              <div className="w-5 h-5 rounded-full bg-zinc-100 flex items-center justify-center text-zinc-500 text-xs mt-0.5 flex-shrink-0">
-                ?
+          {/* AVISO: usando valores padrão */}
+          {usingDefaults && (
+            <motion.div
+              initial={{ opacity: 0, y: 5 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.6, duration: 0.4 }}
+              className="mt-6 p-4 bg-amber-50 border border-amber-200 rounded-lg text-xs text-amber-900"
+            >
+              <div className="font-semibold mb-2 flex items-center gap-1.5">
+                <svg
+                  className="w-4 h-4"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                >
+                  <path d="M12 9v2m0 4h.01M5.07 19h13.86c1.54 0 2.5-1.67 1.73-3L13.73 4a2 2 0 00-3.46 0L3.34 16c-.77 1.33.19 3 1.73 3z" />
+                </svg>
+                Modo demo — você está usando valores padrão
               </div>
-              <p className="text-xs text-zinc-500 leading-relaxed">
-                Apenas contas GitHub previamente autorizadas podem acessar este
-                painel. O acesso é protegido por URL secreta e sessão
-                criptografada.
-              </p>
-            </div>
-          </div>
-        </motion.div>
+              <ul className="space-y-1 ml-5 list-disc">
+                {config?.usingDefaultPassword && (
+                  <li>
+                    Senha padrão: <code className="px-1 bg-amber-100 rounded font-mono">admin123</code>
+                  </li>
+                )}
+                {config?.usingDefaultPathSecret && (
+                  <li>
+                    URL: <code className="px-1 bg-amber-100 rounded font-mono font-mono">/painel?chave=painel-admin</code>
+                  </li>
+                )}
+              </ul>
+              <div className="mt-3 text-amber-800">
+                ⚠️ Para produção, defina{' '}
+                <code className="px-1 bg-amber-100 rounded font-mono">ADMIN_PASSWORD_HASH</code> e{' '}
+                <code className="px-1 bg-amber-100 rounded font-mono">ADMIN_PATH_SECRET</code> no arquivo{' '}
+                <code className="px-1 bg-amber-100 rounded font-mono">.env</code>.
+              </div>
+            </motion.div>
+          )}
+        </motion.form>
 
         {/* Footer */}
         <motion.div
