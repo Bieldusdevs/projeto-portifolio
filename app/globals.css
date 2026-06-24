@@ -3,8 +3,7 @@
 @tailwind utilities;
 
 /* ============================================
-   VARIÁVEIS GLOBAIS — Paleta principal
-   Edite as cores aqui também se mudar via CSS
+   VARIÁVEIS GLOBAIS
    ============================================ */
 :root {
   --bg: #0a0a0f;
@@ -13,16 +12,15 @@
   --muted: #6b6b7b;
 }
 
-/* Reset básico e configurações globais */
 * {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
 }
 
-/* Esconde cursor nativo apenas em desktop (com cursor customizado) */
+/* Cursor customizado apenas em desktop */
 @media (hover: hover) and (pointer: fine) {
-  * {
+  body:not(.admin-mode) * {
     cursor: none !important;
   }
 }
@@ -30,7 +28,6 @@
 html {
   background: var(--bg);
   color: var(--fg);
-  scroll-behavior: auto; /* Lenis controla o scroll */
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -43,17 +40,11 @@ body {
   min-height: 100vh;
 }
 
-/* ============================================
-   SELEÇÃO DE TEXTO — Estilizada com cor de destaque
-   ============================================ */
 ::selection {
   background: var(--accent);
   color: var(--bg);
 }
 
-/* ============================================
-   SCROLLBAR — Personalizada e discreta
-   ============================================ */
 ::-webkit-scrollbar {
   width: 6px;
 }
@@ -67,38 +58,27 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: var(--accent);
 }
-
-/* Firefox */
 * {
   scrollbar-width: thin;
   scrollbar-color: var(--muted) var(--bg);
 }
 
-/* ============================================
-   UTILITÁRIOS — Classes auxiliares
-   ============================================ */
-
-/* Mix blend difference para o nav */
 .mix-blend-difference {
   mix-blend-mode: difference;
 }
 
-/* Animação de pulse para indicadores */
 @keyframes pulse-dot {
   0%, 100% { opacity: 1; transform: scale(1); }
   50% { opacity: 0.5; transform: scale(1.2); }
 }
-
 .animate-pulse-dot {
   animation: pulse-dot 2s ease-in-out infinite;
 }
 
-/* Smooth font rendering */
 .font-serif {
   font-feature-settings: 'liga' 1, 'kern' 1;
 }
 
-/* Container principal */
 .container-x {
   padding-left: 2rem;
   padding-right: 2rem;
@@ -116,7 +96,44 @@ body {
   }
 }
 
-/* Para users com prefers-reduced-motion */
+/* ============================================
+   MODO ADMIN — Visual preto e branco
+   ============================================ */
+body.admin-mode {
+  background: #fafafa;
+  color: #0a0a0a;
+  cursor: auto !important;
+}
+
+body.admin-mode * {
+  cursor: auto !important;
+}
+
+/* Scrollbar claro para admin */
+body.admin-mode::-webkit-scrollbar-track {
+  background: #fafafa;
+}
+body.admin-mode::-webkit-scrollbar-thumb {
+  background: #d4d4d8;
+}
+body.admin-mode * {
+  scrollbar-color: #d4d4d8 #fafafa;
+}
+
+/* Inputs admin */
+body.admin-mode input,
+body.admin-mode textarea,
+body.admin-mode select {
+  font-family: inherit;
+}
+
+body.admin-mode input:focus,
+body.admin-mode textarea:focus,
+body.admin-mode select:focus {
+  outline: none;
+}
+
+/* Animações suaves */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.01ms !important;

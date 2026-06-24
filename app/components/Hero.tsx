@@ -3,11 +3,12 @@
 // ============================================
 // HERO — Seção de impacto principal
 // Tecnologia: GSAP Timeline (entrada) + ScrollTrigger (parallax)
-// EDITE: título em `titleWords`, subtítulo, CTAs
+// Dados: do painel admin (usePortfolioData)
 // ============================================
 import { useEffect, useRef } from 'react'
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
+import { usePortfolioData } from '@/lib/use-portfolio-data'
 
 gsap.registerPlugin(ScrollTrigger)
 
@@ -19,6 +20,8 @@ export default function Hero() {
   const marqueeRef = useRef<HTMLDivElement>(null)
   const badgeRef = useRef<HTMLDivElement>(null)
 
+  const { data } = usePortfolioData()
+
   useEffect(() => {
     const section = sectionRef.current
     const title = titleRef.current
@@ -28,20 +31,14 @@ export default function Hero() {
     const badge = badgeRef.current
     if (!section || !title || !subtitle || !cta || !marquee || !badge) return
 
-    // ============================================
-    // EDITE: Animação de entrada aqui
-    // Timeline orquestra todos os elementos do hero
-    // ============================================
     const tl = gsap.timeline({ delay: 0.3 })
 
-    // Badge "Disponível"
     tl.fromTo(
       badge,
       { y: 20, opacity: 0 },
       { y: 0, opacity: 1, duration: 0.8, ease: 'power3.out' }
     )
 
-    // Título - palavra por palavra
     const words = title.querySelectorAll('.word')
     tl.fromTo(
       words,
@@ -57,7 +54,6 @@ export default function Hero() {
       '-=0.4'
     )
 
-    // Subtítulo
     tl.fromTo(
       subtitle,
       { y: 30, opacity: 0 },
@@ -65,7 +61,6 @@ export default function Hero() {
       '-=0.7'
     )
 
-    // CTAs
     tl.fromTo(
       cta.children,
       { y: 20, opacity: 0 },
@@ -73,9 +68,6 @@ export default function Hero() {
       '-=0.7'
     )
 
-    // ============================================
-    // Parallax no scroll - título sobe e diminui
-    // ============================================
     gsap.to(title, {
       y: -150,
       opacity: 0.2,
@@ -87,9 +79,6 @@ export default function Hero() {
       },
     })
 
-    // ============================================
-    // Marquee infinito (rodapé do hero)
-    // ============================================
     gsap.to(marquee.querySelector('.marquee-track'), {
       x: '-50%',
       duration: 25,
@@ -98,10 +87,7 @@ export default function Hero() {
     })
   }, [])
 
-  // ============================================
-  // EDITE: O título principal do hero (cada palavra anima separado)
-  // ============================================
-  const titleWords = ['Criando', 'experiências', 'digitais', 'que', 'importam.']
+  const titleWords = data.profile.heroTitle
 
   return (
     <section
@@ -109,17 +95,14 @@ export default function Hero() {
       className="min-h-screen flex flex-col justify-center relative container-x pt-32 pb-24"
     >
       <div className="max-w-7xl">
-        {/* Badge de disponibilidade */}
         <div
           ref={badgeRef}
           className="font-mono text-xs uppercase tracking-[0.3em] text-muted mb-8 flex items-center gap-3"
         >
           <span className="w-2 h-2 bg-accent rounded-full animate-pulse-dot" />
-          {/* EDITE: Seu status atual */}
-          Disponível para novos projetos
+          {data.profile.badge}
         </div>
 
-        {/* Título principal */}
         <h1
           ref={titleRef}
           className="font-serif text-[clamp(3rem,11vw,11rem)] leading-[0.9] tracking-tight mb-12"
@@ -135,17 +118,12 @@ export default function Hero() {
           ))}
         </h1>
 
-        {/* Subtítulo + CTAs */}
         <div className="grid md:grid-cols-12 gap-8 mt-12">
-          {/* EDITE: Subtítulo/descrição */}
           <p
             ref={subtitleRef}
             className="md:col-span-7 text-lg md:text-xl text-muted leading-relaxed max-w-2xl"
           >
-            Desenvolvedor full stack especializado em criar produtos digitais
-            de alta performance. Combinando rigor técnico com sensibilidade
-            estética para construir interfaces que são ao mesmo tempo funcionais
-            e memoráveis.
+            {data.profile.heroSubtitle}
           </p>
 
           <div
@@ -192,10 +170,6 @@ export default function Hero() {
         </div>
       </div>
 
-      {/* ============================================
-          Marquee de tecnologias (rodapé do hero)
-          EDITE: adicione/remova tecnologias em `marqueeItems`
-          ============================================ */}
       <div
         ref={marqueeRef}
         className="absolute bottom-0 left-0 right-0 overflow-hidden border-t border-white/10 py-5"

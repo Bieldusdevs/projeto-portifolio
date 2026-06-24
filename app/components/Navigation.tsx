@@ -74,8 +74,7 @@ export default function Navigation() {
             className="font-serif text-2xl md:text-3xl text-white"
             data-cursor="hover"
           >
-            {/* EDITE: Seu nome/marca */}
-            portfolio<span className="text-accent">.</span>
+            portfólio<span className="text-accent">.</span>
           </a>
 
           {/* Desktop menu */}

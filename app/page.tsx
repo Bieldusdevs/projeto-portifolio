@@ -11,6 +11,9 @@ import Testimonials from './components/Testimonials'
 import Contact from './components/Contact'
 import Footer from './components/Footer'
 
+// Renderiza dinamicamente (SSR) para evitar problemas com componentes WebGL
+export const dynamic = 'force-dynamic'
+
 export default function Home() {
   return (
     <main>

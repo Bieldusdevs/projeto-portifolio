@@ -2,30 +2,28 @@
 
 // ============================================
 // CONTATO — Email, social, formulário
-// Tecnologia: GSAP ScrollTrigger + Framer Motion (form)
-// EDITE: email em `email`, redes sociais em `socials`
+// Tecnologia: GSAP ScrollTrigger + Framer Motion
+// Dados: do painel admin (sem LinkedIn)
 // ============================================
 import { useEffect, useRef, useState } from 'react'
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { motion, AnimatePresence } from 'framer-motion'
+import { usePortfolioData } from '@/lib/use-portfolio-data'
 
 gsap.registerPlugin(ScrollTrigger)
-
-// ============================================
-// EDITE: Seu email e redes sociais
-// ============================================
-const email = 'contato@email.com'
-const socials = [
-  { name: 'GitHub', url: 'https://github.com/seu-user' },
-  { name: 'LinkedIn', url: 'https://linkedin.com/in/seu-user' },
-  { name: 'Twitter', url: 'https://twitter.com/seu-user' },
-]
 
 export default function Contact() {
   const sectionRef = useRef<HTMLElement>(null)
   const [formData, setFormData] = useState({ email: '', message: '' })
   const [sent, setSent] = useState(false)
+  const { data } = usePortfolioData()
+
+  // Apenas GitHub e Twitter (LinkedIn removido)
+  const socials = [
+    { name: 'GitHub', url: data.socials.github },
+    { name: 'Twitter', url: data.socials.twitter },
+  ].filter((s) => s.url)
 
   useEffect(() => {
     const section = sectionRef.current
@@ -51,7 +49,6 @@ export default function Contact() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    // EDITE: aqui você conecta com seu backend / service (Formspree, Resend, etc)
     setSent(true)
     setTimeout(() => {
       setSent(false)
@@ -65,18 +62,15 @@ export default function Contact() {
       ref={sectionRef}
       className="py-32 md:py-48 container-x border-t border-white/10 relative overflow-hidden"
     >
-      {/* Background glow decorativo */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-accent/10 rounded-full blur-[120px] pointer-events-none" />
 
       <div className="max-w-7xl mx-auto relative z-10">
         <div className="grid md:grid-cols-12 gap-12 md:gap-16">
-          {/* Lado esquerdo - headline e contato */}
           <div className="md:col-span-6">
             <div className="font-mono text-xs uppercase tracking-[0.3em] text-muted mb-6 reveal">
               (06) — Contato
             </div>
             <h2 className="reveal font-serif text-5xl md:text-7xl lg:text-8xl leading-[1] tracking-tight mb-10">
-              {/* EDITE: Headline */}
               Vamos criar
               <br />
               algo
@@ -86,11 +80,11 @@ export default function Contact() {
 
             <div className="reveal space-y-8 mt-12">
               <a
-                href={`mailto:${email}`}
+                href={`mailto:${data.profile.email}`}
                 className="group flex items-center gap-3 text-2xl md:text-3xl hover:text-accent transition-colors"
                 data-cursor="hover"
               >
-                <span className="font-serif">{email}</span>
+                <span className="font-serif">{data.profile.email}</span>
                 <span className="opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all duration-300">
                   ↗
                 </span>
@@ -113,7 +107,6 @@ export default function Contact() {
             </div>
           </div>
 
-          {/* Lado direito - formulário */}
           <div className="md:col-span-6 reveal">
             <form onSubmit={handleSubmit} className="space-y-8">
               <div>

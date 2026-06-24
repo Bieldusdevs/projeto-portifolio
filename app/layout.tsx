@@ -4,19 +4,11 @@
 import type { Metadata } from 'next'
 import { Inter, Instrument_Serif, JetBrains_Mono } from 'next/font/google'
 import './globals.css'
-
-import SmoothScroll from './components/SmoothScroll'
-import CustomCursor from './components/CustomCursor'
-import WebGLBackground from './components/WebGLBackground'
-import NoiseOverlay from './components/NoiseOverlay'
-import Navigation from './components/Navigation'
+import PublicShell from './components/PublicShell'
 
 // ============================================
 // FONTS — Carregadas via next/font (otimizadas)
-// Para mudar fontes, edite aqui. Sugestões:
-// - Display: Fraunces, Playfair Display, Cormorant Garamond
-// - Body: Inter, Manrope, Geist
-// - Mono: JetBrains Mono, Geist Mono, Space Mono
+// Para mudar fontes, edite aqui.
 // ============================================
 const inter = Inter({
   subsets: ['latin'],
@@ -40,15 +32,16 @@ const jetbrainsMono = JetBrains_Mono({
 
 // ============================================
 // METADATA — SEO do site
-// EDITE: troque title, description e adicione og:image
+// EDITE: troque title, description, og:image
 // ============================================
 export const metadata: Metadata = {
-  title: 'Portfolio — Desenvolvedor Full Stack & Criador de Experiências',
-  description: 'Portfolio de desenvolvimento web de alto nível. Next.js, Three.js, GSAP, WebGL e experiências digitais únicas.',
-  keywords: ['desenvolvedor', 'portfolio', 'next.js', 'three.js', 'webgl', 'gsap'],
+  title: 'Portfólio — Desenvolvedor Full Stack & Criador de Experiências',
+  description:
+    'Portfólio de desenvolvimento web de alto nível. Next.js, Three.js, GSAP, WebGL e experiências digitais únicas.',
+  keywords: ['desenvolvedor', 'portfólio', 'next.js', 'three.js', 'webgl', 'gsap'],
   authors: [{ name: 'Seu Nome' }],
   openGraph: {
-    title: 'Portfolio — Desenvolvedor Full Stack',
+    title: 'Portfólio — Desenvolvedor Full Stack',
     description: 'Criando experiências digitais de alto nível',
     type: 'website',
   },
@@ -65,12 +58,7 @@ export default function RootLayout({
       className={`${inter.variable} ${instrumentSerif.variable} ${jetbrainsMono.variable}`}
     >
       <body className="font-sans antialiased">
-        {/* Ordem importa: WebGL no fundo, depois overlays, depois UI */}
-        <WebGLBackground />
-        <NoiseOverlay />
-        <CustomCursor />
-        <Navigation />
-        <SmoothScroll>{children}</SmoothScroll>
+        <PublicShell>{children}</PublicShell>
       </body>
     </html>
   )

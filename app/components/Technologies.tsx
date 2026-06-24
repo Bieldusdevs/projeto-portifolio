@@ -2,28 +2,19 @@
 
 // ============================================
 // TECNOLOGIAS — Stack organizado por categoria
-// Tecnologia: GSAP ScrollTrigger (entrada em stagger)
-// EDITE: array `techs` com suas tecnologias
+// Tecnologia: GSAP ScrollTrigger
+// Dados: do painel admin
 // ============================================
 import { useEffect, useRef } from 'react'
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
+import { usePortfolioData } from '@/lib/use-portfolio-data'
 
 gsap.registerPlugin(ScrollTrigger)
 
-// ============================================
-// EDITE: Adicione/remova categorias e tecnologias
-// ============================================
-const techs: Record<string, string[]> = {
-  'Frontend': ['React', 'Next.js', 'TypeScript', 'Tailwind CSS', 'Vue.js'],
-  '3D & WebGL': ['Three.js', 'React Three Fiber', 'GLSL Shaders', 'WebGPU', 'Blender'],
-  'Animation': ['GSAP', 'Framer Motion', 'Lenis', 'CSS Animations'],
-  'Backend': ['Node.js', 'PostgreSQL', 'GraphQL', 'tRPC', 'Prisma'],
-  'Tools & Deploy': ['Vercel', 'Docker', 'AWS', 'Git', 'Figma'],
-}
-
 export default function Technologies() {
   const sectionRef = useRef<HTMLElement>(null)
+  const { data } = usePortfolioData()
 
   useEffect(() => {
     const section = sectionRef.current
@@ -82,19 +73,18 @@ export default function Technologies() {
         </div>
 
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-x-12 gap-y-16">
-          {Object.entries(techs).map(([category, items], i) => (
-            <div key={i} className="tech-category">
+          {data.technologies.map((category, i) => (
+            <div key={category.id} className="tech-category">
               <div className="flex items-baseline justify-between mb-6 pb-3 border-b border-white/20">
                 <h3 className="font-serif text-2xl md:text-3xl">
-                  {/* EDITE: Nome da categoria */}
-                  {category}
+                  {category.name}
                 </h3>
                 <span className="font-mono text-xs text-muted">
                   {String(i + 1).padStart(2, '0')}
                 </span>
               </div>
               <ul className="space-y-1">
-                {items.map((item, j) => (
+                {category.items.map((item, j) => (
                   <li
                     key={j}
                     className="tech-item flex items-center justify-between py-3 px-3 -mx-3 hover:bg-white/5 rounded transition-all duration-300 group cursor-default"

@@ -3,56 +3,23 @@
 // ============================================
 // EXPERIÊNCIA — Timeline profissional
 // Tecnologia: GSAP ScrollTrigger (linha animada + itens)
-// EDITE: array `experiences` com suas posições
+// Dados: do painel admin
 // ============================================
 import { useEffect, useRef } from 'react'
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
+import { usePortfolioData } from '@/lib/use-portfolio-data'
 
 gsap.registerPlugin(ScrollTrigger)
 
-// ============================================
-// EDITE: Sua trajetória profissional
-// ============================================
-const experiences = [
-  {
-    role: 'Senior Frontend Engineer',
-    company: 'Studio Atelier',
-    period: '2024 — Presente',
-    description:
-      'Liderança técnica em projetos de alto nível com foco em experiências 3D, animações complexas e arquitetura de componentes escaláveis.',
-  },
-  {
-    role: 'Full Stack Developer',
-    company: 'Agência Vértice',
-    period: '2022 — 2024',
-    description:
-      'Desenvolvimento de plataformas SaaS e e-commerce para clientes internacionais, com ênfase em performance e experiência do usuário.',
-  },
-  {
-    role: 'Frontend Developer',
-    company: 'Tech Startup XYZ',
-    period: '2020 — 2022',
-    description:
-      'Criação de interfaces reativas, componentização de design system e implementação de micro-frontends em React.',
-  },
-  {
-    role: 'Junior Developer',
-    company: 'Freelancer',
-    period: '2019 — 2020',
-    description:
-      'Primeiros projetos profissionais, com foco em landing pages, WordPress customizado e introdução ao desenvolvimento moderno.',
-  },
-]
-
 export default function Experience() {
   const sectionRef = useRef<HTMLElement>(null)
+  const { data } = usePortfolioData()
 
   useEffect(() => {
     const section = sectionRef.current
     if (!section) return
 
-    // Linha do timeline se desenha conforme scroll
     gsap.fromTo(
       section.querySelector('.timeline-line'),
       { scaleY: 0 },
@@ -105,31 +72,25 @@ export default function Experience() {
         </div>
 
         <div className="timeline relative pl-8 md:pl-[200px]">
-          {/* Linha do timeline */}
           <div className="timeline-line absolute left-0 md:left-[200px] top-2 bottom-0 w-px bg-gradient-to-b from-accent via-white/20 to-transparent origin-top" />
 
           <div className="space-y-16">
-            {experiences.map((exp, i) => (
+            {data.experience.map((exp) => (
               <div
-                key={i}
+                key={exp.id}
                 className="exp-item relative grid md:grid-cols-[1fr_2fr] gap-6 group"
                 data-cursor="hover"
               >
-                {/* Período (visível em desktop) */}
                 <div className="hidden md:block font-mono text-sm text-muted pt-1">
                   {exp.period}
                 </div>
 
-                {/* Bolinha do timeline */}
                 <div className="absolute left-[-5px] md:left-[195px] top-2 w-2.5 h-2.5 bg-accent rounded-full group-hover:scale-150 group-hover:shadow-[0_0_20px_rgba(59,130,246,0.6)] transition-all duration-300" />
 
                 <div>
-                  {/* Período (mobile) */}
                   <div className="md:hidden font-mono text-xs text-muted mb-2 uppercase tracking-wider">
                     {exp.period}
                   </div>
-
-                  {/* EDITE: cargo e empresa */}
                   <h3 className="font-serif text-3xl md:text-4xl mb-2 group-hover:text-accent transition-colors duration-300">
                     {exp.role}
                   </h3>
