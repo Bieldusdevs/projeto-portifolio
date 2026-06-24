@@ -5,12 +5,19 @@
 // Renderiza os efeitos do site público SOMENTE fora do /painel
 // No painel admin: renderiza apenas children (visual limpo)
 // ============================================
+import dynamic from 'next/dynamic'
 import { usePathname } from 'next/navigation'
-import WebGLBackground from './WebGLBackground'
 import NoiseOverlay from './NoiseOverlay'
 import CustomCursor from './CustomCursor'
 import Navigation from './Navigation'
 import SmoothScroll from './SmoothScroll'
+
+// WebGLBackground tem problemas em SSR (Three.js/R3F).
+// Carregamos só no client para evitar erros.
+const WebGLBackground = dynamic(() => import('./WebGLBackground'), {
+  ssr: false,
+  loading: () => null,
+})
 
 export default function PublicShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
